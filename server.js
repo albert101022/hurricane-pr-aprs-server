@@ -66,13 +66,19 @@ function parseAPRSWeather(line) {
     let rain24h  = null;
     let pressure = null;
 
-    // Wind direction: _DDD
-    const windDirMatch = body.match(/_(\d{3})\//);
-    if (windDirMatch) windDeg = parseInt(windDirMatch[1]);
-
-    // Wind speed mph: /GGG (sustained) or /SSS
-    const windMatch = body.match(/\/(\d{3})(g\d{3})?/);
-    if (windMatch) windMph = parseInt(windMatch[1]);
+    // Wind: _DDD/SSSgGGG  (dir degrees / sustained mph g gust mph)
+    const windFullMatch = body.match(/_(\d{3})\/(\d{3})g(\d{3})/);
+    if (windFullMatch) {
+      windDeg = parseInt(windFullMatch[1]);
+      windMph = parseInt(windFullMatch[2]); // sustained speed
+      // windGust = parseInt(windFullMatch[3]); // gust - not stored currently
+    } else {
+      // Fallback: direction only
+      const windDirMatch = body.match(/_(\d{3})\//);
+      if (windDirMatch) windDeg = parseInt(windDirMatch[1]);
+      const windSpdMatch = body.match(/_\d{3}\/(\d{3})/);
+      if (windSpdMatch) windMph = parseInt(windSpdMatch[1]);
+    }
 
     // Temperature °F: tTTT or t-TT
     const tempMatch = body.match(/t(-?\d{2,3})/);
